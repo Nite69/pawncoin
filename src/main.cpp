@@ -890,6 +890,7 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
 
 	if (BlockLastSolved == NULL || BlockLastSolved->nHeight == 0 || (uint64)BlockLastSolved->nHeight < PastBlocksMin) { return bnProofOfWorkLimit.GetCompact(); }
     int64 LatestBlockTime = BlockLastSolved->GetBlockTime();   //exploit fix
+    int64 EarliestBlockTime = BlockLastSolved->GetBlockTime();   //exploit fix #2
 	for (unsigned int i = 1; BlockReading && BlockReading->nHeight > 0; i++) {
             if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
             PastBlocksMass++;
@@ -901,11 +902,17 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
              
              //Exploit fix https://bitcointalk.org/index.php?topic=552895
                 if (LatestBlockTime < BlockReading->GetBlockTime()) {
-                                if (BlockReading->nHeight > 9000)
+                                if (BlockReading->nHeight >= 28286)
                                         LatestBlockTime = BlockReading->GetBlockTime();
                         }
+		if (BlockLastSolved->nHeight < 28286) EarliestBlockTime = BlockReading->GetBlockTime();
+		else {
+			if (EarliestBlockTime > BlockReading->GetBlockTime()) {
+                        	EarliestBlockTime = BlockReading->GetBlockTime();
+                        }
+		}
             
-            PastRateActualSeconds                        = BlockLastSolved->GetBlockTime() - BlockReading->GetBlockTime();
+            PastRateActualSeconds                        = LatestBlockTime - EarliestBlockTime;
             PastRateTargetSeconds                        = TargetBlocksSpacingSeconds * PastBlocksMass;
             PastRateAdjustmentRatio                        = double(1);
             
@@ -933,6 +940,13 @@ unsigned int static KimotoGravityWell(const CBlockIndex* pindexLast, const CBloc
 	}
 
 	CBigNum bnNew(PastDifficultyAverage);
+	if (BlockLastSolved->nHeight >= 28286) {
+	        printf("PastRateTargetSeconds %lu\n", PastRateTargetSeconds);
+	        printf("PastRateActualSeconds before %lu\n", PastRateActualSeconds);
+		if (PastRateActualSeconds > (4*PastRateTargetSeconds)) PastRateActualSeconds = 4*PastRateTargetSeconds;
+		if (PastRateActualSeconds < (PastRateTargetSeconds / 4)) PastRateActualSeconds = PastRateTargetSeconds/4;
+	        printf("PastRateActualSeconds after %lu\n", PastRateActualSeconds);
+	}
 	if (PastRateActualSeconds != 0 && PastRateTargetSeconds != 0) {
 		bnNew *= PastRateActualSeconds;
 		bnNew /= PastRateTargetSeconds;
@@ -2592,6 +2606,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         pfrom->fSuccessfullyConnected = true;
 
         printf("receive version message: version %d, blocks=%d, us=%s, them=%s, peer=%s\n", pfrom->nVersion, pfrom->nStartingHeight, addrMe.ToString().c_str(), addrFrom.ToString().c_str(), pfrom->addr.ToString().c_str());
+       if (addrFrom.GetPort() == (GetDefaultPort()+1)) {
+               addrFrom.SetPort(GetDefaultPort());
+               printf("Fixing port %s\n", addrFrom.ToString().c_str());
+       }
 
         cPeerBlockCounts.input(pfrom->nStartingHeight);
     }
