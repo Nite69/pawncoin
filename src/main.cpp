@@ -840,6 +840,10 @@ int64 static GetBlockValue(int nHeight, int64 nFees, uint256 prevHash)
     {
        nSubsidy = 50 * COIN;
         }
+    else if(nHeight > 35000)
+    {
+       nSubsidy = MIN_TX_FEE;
+        }
         
     return nSubsidy+nFees;
 }
@@ -1855,7 +1859,7 @@ bool CBlock::CheckBlock() const
         return DoS(50, error("CheckBlock() : proof of work failed"));
 
     // Check timestamp
-    if (GetBlockTime() > GetAdjustedTime() + 2 * 60 * 60)
+    if (GetBlockTime() > GetAdjustedTime() + 20 * 60)
         return error("CheckBlock() : block timestamp too far in the future");
 
     // First transaction must be coinbase, the rest must not be
