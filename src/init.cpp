@@ -13,6 +13,7 @@
 #include "init.h"
 #include "util.h"
 #include "ui_interface.h"
+#include "checkpoints.h"
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/convenience.hpp>
@@ -692,6 +693,12 @@ bool AppInit2()
         CBlockLocator locator;
         if (walletdb.ReadBestBlock(locator))
             pindexRescan = locator.GetBlockIndex();
+        if (walletdb.ReadAutoCheckedBlock(locator))
+	{
+            CBlockIndex *pindexAutoCheckpoint = locator.GetBlockIndex();
+            printf("Autocheckpoint read %i.\n", pindexAutoCheckpoint->nHeight);
+	    Checkpoints::NewCheckPointBlock(pindexAutoCheckpoint->nHeight, *pindexAutoCheckpoint->phashBlock);
+	}
     }
     if (pindexBest != pindexRescan)
     {

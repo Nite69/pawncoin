@@ -235,6 +235,8 @@ public:
     }
     void SetBestChain(const CBlockLocator& loc);
 
+    void SetAutoCheckpoint(const CBlockLocator& loc);
+
     int LoadWallet(bool& fFirstRunRet);
 
     bool SetAddressBookName(const CTxDestination& address, const std::string& strName);

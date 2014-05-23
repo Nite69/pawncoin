@@ -108,6 +108,17 @@ public:
         return Write(std::make_pair(std::string("cscript"), hash), redeemScript, false);
     }
 
+    bool WriteAutoCheckedBlock(const CBlockLocator& locator)
+    {
+        nWalletDBUpdated++;
+        return Write(std::string("autocheckedblock"), locator);
+    }
+
+    bool ReadAutoCheckedBlock(CBlockLocator& locator)
+    {
+        return Read(std::string("autocheckedblock"), locator);
+    }
+
     bool WriteBestBlock(const CBlockLocator& locator)
     {
         nWalletDBUpdated++;

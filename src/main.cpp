@@ -1998,6 +1998,7 @@ void tryToCheckpoint(CBlockIndex* pToBeCheckpointed)
 		printf("    Prev:  %s\n", checkPointWorkPower.ToString().c_str());
 		printf("    New :  %s\n", newPointWorkPower.ToString().c_str());
 		Checkpoints::NewCheckPointBlock(pToBeCheckpointed->nHeight, *pToBeCheckpointed->phashBlock);
+		pwalletMain->SetAutoCheckpoint(CBlockLocator(*pToBeCheckpointed->phashBlock));
 	} else {
 		printf("  No hashing power enought to checkpoint\n");
 		printf("    Prev:  %s\n", checkPointWorkPower.ToString().c_str());
