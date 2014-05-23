@@ -9,6 +9,7 @@
 #define  BITCOIN_CHECKPOINT_H
 
 #include <map>
+#include "uint256.h"
 
 class uint256;
 class CBlockIndex;
@@ -18,6 +19,10 @@ class CBlockIndex;
  */
 namespace Checkpoints
 {
+    struct sCheckpoint {
+        int height;
+        uint256 hash;
+    };
     // Returns true if block passes checkpoint checks
     bool CheckBlock(int nHeight, const uint256& hash);
 
@@ -26,6 +31,9 @@ namespace Checkpoints
 
     // Returns last CBlockIndex* in mapBlockIndex that is a checkpoint
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex);
+    // Marks a new auto checkpoint
+    void NewCheckPointBlock(int nHeight, const uint256& hash);
+
 }
 
 #endif
