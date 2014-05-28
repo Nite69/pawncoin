@@ -34,6 +34,7 @@ namespace Checkpoints
             (  256, uint256("0xf2315532dfb3989a18ffadca02a3ad6211d14017b6b5e571754e6aa8cf1acb56"))
             (  32768, uint256("0x63a3a0e4fe7f43da54e750ec483f1f084306889e3a9d220ca442da8f5709b822"))
             (  34582 , uint256("0x04914a051dc440bd79dfd6fd3e6a79f62917947304d66fee51ce1de7486d861c"))
+            (  37836 , uint256("0x1b0fb6c5913fa7b07b3fc6bb204dbf90c60fe6740c018e045118b56ce59d35d5"))
 	;
 
     // Marks a new auto checkpoint
