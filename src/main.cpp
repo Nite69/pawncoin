@@ -1984,39 +1984,43 @@ uint256 CountHashingPowerForward(CBlockIndex* pblock)
 	return bnChainWork.getuint256();
 }
 
-void tryToCheckpoint(CBlockIndex* pToBeCheckpointed)
+bool tryToCheckpoint(CBlockIndex* pToBeCheckpointed)
 {
-	if (!pToBeCheckpointed) return;
-	printf("Trying to checkpoint:  %u\n", pToBeCheckpointed->nHeight);
+	if (!pToBeCheckpointed) return false;
+	//printf("Trying to checkpoint:  %u\n", pToBeCheckpointed->nHeight);
 	CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
 	uint256 checkPointWorkPower = CountHashingPowerBack(pcheckpoint);
 	uint256 newPointWorkPower = CountHashingPowerForward(pToBeCheckpointed);
 	// divided by 2
 	if (newPointWorkPower > (checkPointWorkPower >> 1)) 
 	{
-		printf("  Yes, hashing power more than half of the latest checkpoint\n");
+		printf("Checkpointed:  %u\n", pToBeCheckpointed->nHeight);
 		printf("    Prev:  %s\n", checkPointWorkPower.ToString().c_str());
 		printf("    New :  %s\n", newPointWorkPower.ToString().c_str());
 		Checkpoints::NewCheckPointBlock(pToBeCheckpointed->nHeight, *pToBeCheckpointed->phashBlock);
 		pwalletMain->SetAutoCheckpoint(CBlockLocator(*pToBeCheckpointed->phashBlock));
+		return true;
 	} else {
-		printf("  No hashing power enought to checkpoint\n");
-		printf("    Prev:  %s\n", checkPointWorkPower.ToString().c_str());
-		printf("    New :  %s\n", newPointWorkPower.ToString().c_str());
+		//printf("  No hashing power enought to checkpoint\n");
+		//printf("    Prev:  %s\n", checkPointWorkPower.ToString().c_str());
+		//printf("    New :  %s\n", newPointWorkPower.ToString().c_str());
 	}
+	return false;
 }
 
-void CheckGenerateAutoCheckpoint(int nHeight)
+bool CheckGenerateAutoCheckpoint(int nHeight)
 {
+	bool success = false;
 	nHeight -= COINBASE_MATURITY;
 	CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
-	if (!pcheckpoint) return;
-	if (pcheckpoint->nHeight < Checkpoints::GetTotalBlocksEstimate()) return;
+	if (!pcheckpoint) return false;
+	if (pcheckpoint->nHeight < Checkpoints::GetTotalBlocksEstimate()) return false;
 	while (pcheckpoint && (pcheckpoint->nHeight <= nHeight)) 
 	{
 		pcheckpoint = pcheckpoint->pnext;
-		tryToCheckpoint(pcheckpoint);
+		success |= tryToCheckpoint(pcheckpoint);
 	}
+	return success;
 }
 
 bool ProcessBlock(CNode* pfrom, CBlock* pblock)
@@ -2097,7 +2101,9 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock)
     // Check if we can generate a new autocheckpoint
     if (mapBlockIndex.count(pblock->hashPrevBlock))
     {
-	    CheckGenerateAutoCheckpoint(mapBlockIndex[pblock->hashPrevBlock]->nHeight);
+	if (!CheckGenerateAutoCheckpoint(mapBlockIndex[pblock->hashPrevBlock]->nHeight)) {
+    		printf("ProcessBlock: No auto checkpoints generated.\n");
+	}
     }
     return true;
 }

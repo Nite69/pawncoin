@@ -35,6 +35,7 @@ namespace Checkpoints
             (  32768, uint256("0x63a3a0e4fe7f43da54e750ec483f1f084306889e3a9d220ca442da8f5709b822"))
             (  34582 , uint256("0x04914a051dc440bd79dfd6fd3e6a79f62917947304d66fee51ce1de7486d861c"))
             (  37836 , uint256("0x1b0fb6c5913fa7b07b3fc6bb204dbf90c60fe6740c018e045118b56ce59d35d5"))
+            (  44099 , uint256("0xc4ad19044ea22c330ddc6cbdeeeb1fbe116b3beeaf5822329f4d1dede708e6b3"))
 	;
 
     // Marks a new auto checkpoint
@@ -58,32 +59,34 @@ namespace Checkpoints
     int GetTotalBlocksEstimate()
     {
         if (fTestNet) return 0;
-	
-	if (autoCheckpoint.height) {
-		return autoCheckpoint.height;
-	}
-        return mapCheckpoints.rbegin()->first;
-		// return 0;
+        if (mapCheckpoints.rbegin()->first > autoCheckpoint.height)
+            return mapCheckpoints.rbegin()->first;
+        return autoCheckpoint.height;
     }
 
     CBlockIndex* GetLastCheckpoint(const std::map<uint256, CBlockIndex*>& mapBlockIndex)
     {
         if (fTestNet) return NULL;
 
+        BOOST_REVERSE_FOREACH(const MapCheckpoints::value_type& i, mapCheckpoints)
+        {
+            const uint256& hash = i.second;
+            std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
+            if (t != mapBlockIndex.end()) {
+                if (t->first >= autoCheckpoint.height) {
+                    return t->second;
+                } else {
+		    std::map<uint256, CBlockIndex*>::const_iterator u = mapBlockIndex.find(autoCheckpoint.hash);
+		    if (u != mapBlockIndex.end())
+			return u->second;
+                }
+            }
+        }
 	if (autoCheckpoint.height) {
 		std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(autoCheckpoint.hash);
 		if (t != mapBlockIndex.end())
 			return t->second;
 	}
-	
-        BOOST_REVERSE_FOREACH(const MapCheckpoints::value_type& i, mapCheckpoints)
-        {
-            const uint256& hash = i.second;
-            std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
-            if (t != mapBlockIndex.end())
-                return t->second;
-				// return NULL;
-        }
         return NULL;
     }
 }
