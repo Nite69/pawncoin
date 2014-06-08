@@ -2014,7 +2014,6 @@ bool CheckGenerateAutoCheckpoint(int nHeight)
 	nHeight -= COINBASE_MATURITY;
 	CBlockIndex* pcheckpoint = Checkpoints::GetLastCheckpoint(mapBlockIndex);
 	if (!pcheckpoint) return false;
-	if (pcheckpoint->nHeight < Checkpoints::GetTotalBlocksEstimate()) return false;
 	while (pcheckpoint && (pcheckpoint->nHeight <= nHeight)) 
 	{
 		pcheckpoint = pcheckpoint->pnext;
