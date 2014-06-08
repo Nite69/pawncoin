@@ -73,7 +73,7 @@ namespace Checkpoints
             const uint256& hash = i.second;
             std::map<uint256, CBlockIndex*>::const_iterator t = mapBlockIndex.find(hash);
             if (t != mapBlockIndex.end()) {
-                if (t->first >= autoCheckpoint.height) {
+                if (i.first >= autoCheckpoint.height) {
                     return t->second;
                 } else {
 		    std::map<uint256, CBlockIndex*>::const_iterator u = mapBlockIndex.find(autoCheckpoint.hash);
